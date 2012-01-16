@@ -136,14 +136,14 @@ void Database_set(struct Connection *conn, int id, const char *name, const char 
   //addr->email = malloc(sizeof(email));
 
   // Bug: strncpy doesn't guarantee a null-terminated string
-  char *res = strncpy(addr->name, name, sizeof(name));
+  char *res = strncpy(addr->name, name, conn->db->max_data);
 
   // Fix: append a null-terminator to it
   res[strlen(name)] = '\0';
   if (!res)
     die("Name copy failed.", conn);
 
-  res = strncpy(addr->email, email, sizeof(email));
+  res = strncpy(addr->email, email, conn->db->max_data);
   res[strlen(email)] = '\0';
   if (!res)
     die("Email copy failed.", conn);
