@@ -48,14 +48,14 @@ void Address_print(struct Address *addr) {
 void Database_load(struct Connection *conn) {
   int rc = 1;
   
-  read(fileno(conn->file), &conn->db->max_data, sizeof(int));
-  read(fileno(conn->file), &conn->db->max_rows, sizeof(int));
+  rc = fread(&conn->db->max_data, sizeof(int), 1, conn->file);
+  rc = fread(&conn->db->max_rows, sizeof(int), 1, conn->file); 
 
   int rows_size = sizeof(struct Address) * conn->db->max_rows;
   conn->db->rows = malloc(rows_size);
-  rc = read(fileno(conn->file), conn->db->rows, rows_size);
+  rc = fread(conn->db->rows, rows_size, 1, conn->file);
 
-  if (rc == -1)
+  if (rc != 1)
     die("Failed to load database.", conn);
 }
 
@@ -63,21 +63,18 @@ void Database_write(struct Connection *conn) {
   rewind(conn->file);
   int rc = 1;
   
-  //rc = fwrite(&conn->db->max_data, sizeof(int), 1, conn->file);
-  //rc = fwrite(&conn->db->max_rows, sizeof(int), 1, conn->file);
-
-  write(fileno(conn->file), &conn->db->max_data, sizeof(int));
-  write(fileno(conn->file), &conn->db->max_rows, sizeof(int));
+  rc = fwrite(&conn->db->max_data, sizeof(int), 1, conn->file);
+  rc = fwrite(&conn->db->max_rows, sizeof(int), 1, conn->file);
 
   int rows_size = sizeof(struct Address) * conn->db->max_rows;
-  rc = write(fileno(conn->file), conn->db->rows, rows_size);
+  rc = fwrite(conn->db->rows, rows_size, 1, conn->file);
 
-  if (rc == -1)
+  if (rc != 1)
     die("Failed to write database.", conn);
 
-  //rc = fflush(conn->file);
-  //if (rc == -1)
-  //  die("Could not flush database.", conn);
+  rc = fflush(conn->file);
+  if (rc == -1)
+    die("Could not flush database.", conn);
 }
 
 
