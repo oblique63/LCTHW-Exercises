@@ -99,13 +99,13 @@ void Database_write(struct Connection *conn) {
     die("Could not flush database.", conn);
 }
 
-void Database_create(struct Connection *conn, int max_data, int max_rows) {
+void Database_create(struct Connection *conn) {
   //conn->db = malloc( sizeof(*conn->db) + (
   //               ( sizeof(struct Address)  + (sizeof(char) * max_data * 2))
   //               * max_rows ));
 
-  conn->db->max_data = max_data;
-  conn->db->max_rows = max_rows;
+  int max_data = conn->db->max_data;
+  int max_rows = conn->db->max_rows;
   //struct Address *addr = malloc(sizeof(struct Address) + (sizeof(char) * max_data * 2))
   // struct Address *rows[max_rows]; //= malloc((sizeof(struct Address) + (sizeof(char) * max_data * 2)) * max_rows);
   //conn->db->rows = rows;
@@ -187,18 +187,21 @@ int main(int argc, char *argv[]) {
   struct Connection *conn = Database_open(filename, action);
   int id = 0;
   
-  if (argc > 3)
+  if (action != 'c' && argc > 3) {
     id = atoi(argv[3]);
 
-  if (action != 'c' && id >= conn->db->max_rows)
-    die("There are not that many records.", conn);
+    if (id >= conn->db->max_rows)
+      die("There are not that many records.", conn);
+  }
 
   switch(action) {
     case 'c':
       if (argc != 5)
         die("MAX_DATA and MAX_ROWS required.", conn);
-
-      Database_create(conn, atoi(argv[3]), atoi(argv[4]));
+      
+      conn->db->max_data = atoi(argv[3]);
+      conn->db->max_rows = atoi(argv[4]);
+      Database_create(conn);
       Database_write(conn);
       break;
 
