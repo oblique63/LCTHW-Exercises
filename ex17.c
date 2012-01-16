@@ -107,23 +107,17 @@ struct Connection* Database_open(const char *filename, char mode) {
 void Database_close(struct Connection *conn) {
   if (conn) {
     if (conn->file)     fclose(conn->file);
-    //if (conn->db->rows) free(conn->db->rows);
+    if (conn->db->rows) free(conn->db->rows);
     if (conn->db)       free(conn->db);
     free(conn);
   }
 }
 
 void Database_create(struct Connection *conn) {
-  //conn->db = malloc( sizeof(*conn->db) + (
-  //               ( sizeof(struct Address)  + (sizeof(char) * max_data * 2))
-  //               * max_rows ));
-
   int max_data = conn->db->max_data;
   int max_rows = conn->db->max_rows;
-  conn->db->rows = calloc(sizeof(struct Address),  max_rows);
-  //struct Address *addr = malloc(sizeof(struct Address) + (sizeof(char) * max_data * 2))
-  // struct Address *rows[max_rows]; //= malloc((sizeof(struct Address) + (sizeof(char) * max_data * 2)) * max_rows);
-  //conn->db->rows = rows;
+  int rows_size = sizeof(struct Address) * max_rows;
+  conn->db->rows = malloc(rows_size);
   
   int i = 0;
   for (i = 0; i < max_rows; i++) {
