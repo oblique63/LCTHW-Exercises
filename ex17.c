@@ -17,7 +17,7 @@ struct Address {
 struct Database {
   int max_data;
   int max_rows;
-  struct Address rows[MAX_ROWS];
+  struct Address *rows;
 };
 
 struct Connection {
@@ -46,10 +46,40 @@ void Address_print(struct Address *addr) {
 }
 
 void Database_load(struct Connection *conn) {
-  int rc = fread(conn->db, sizeof(struct Database), 1, conn->file);
-  if (rc != 1)
+  int rc = 1;
+  
+  read(fileno(conn->file), &conn->db->max_data, sizeof(int));
+  read(fileno(conn->file), &conn->db->max_rows, sizeof(int));
+
+  int rows_size = sizeof(struct Address) * conn->db->max_rows;
+  conn->db->rows = malloc(rows_size);
+  rc = read(fileno(conn->file), conn->db->rows, rows_size);
+
+  if (rc == -1)
     die("Failed to load database.", conn);
 }
+
+void Database_write(struct Connection *conn) {
+  rewind(conn->file);
+  int rc = 1;
+  
+  //rc = fwrite(&conn->db->max_data, sizeof(int), 1, conn->file);
+  //rc = fwrite(&conn->db->max_rows, sizeof(int), 1, conn->file);
+
+  write(fileno(conn->file), &conn->db->max_data, sizeof(int));
+  write(fileno(conn->file), &conn->db->max_rows, sizeof(int));
+
+  int rows_size = sizeof(struct Address) * conn->db->max_rows;
+  rc = write(fileno(conn->file), conn->db->rows, rows_size);
+
+  if (rc == -1)
+    die("Failed to write database.", conn);
+
+  //rc = fflush(conn->file);
+  //if (rc == -1)
+  //  die("Could not flush database.", conn);
+}
+
 
 struct Connection* Database_open(const char *filename, char mode) {
   struct Connection *conn = malloc(sizeof(struct Connection));
@@ -86,19 +116,6 @@ void Database_close(struct Connection *conn) {
   }
 }
 
-void Database_write(struct Connection *conn) {
-  rewind(conn->file);
-  
-  int rc = fwrite(conn->db, sizeof(struct Database), 1, conn->file);
-
-  if (rc != 1)
-    die("Failed to write database.", conn);
-
-  rc = fflush(conn->file);
-  if (rc == -1)
-    die("Could not flush database.", conn);
-}
-
 void Database_create(struct Connection *conn) {
   //conn->db = malloc( sizeof(*conn->db) + (
   //               ( sizeof(struct Address)  + (sizeof(char) * max_data * 2))
@@ -106,6 +123,7 @@ void Database_create(struct Connection *conn) {
 
   int max_data = conn->db->max_data;
   int max_rows = conn->db->max_rows;
+  conn->db->rows = calloc(sizeof(struct Address),  max_rows);
   //struct Address *addr = malloc(sizeof(struct Address) + (sizeof(char) * max_data * 2))
   // struct Address *rows[max_rows]; //= malloc((sizeof(struct Address) + (sizeof(char) * max_data * 2)) * max_rows);
   //conn->db->rows = rows;
