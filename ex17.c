@@ -183,8 +183,10 @@ void Database_set(int id, const char *name, const char *email) {
     die("Already set, delete it first.");
   
   addr->set = 1;
-  addr->name = calloc(max_data, sizeof(char));
-  addr->email = calloc(max_data, sizeof(char));
+  
+  // Get some memory to copy the strings into!
+  addr->name = malloc(sizeof(char) * max_data);
+  addr->email = malloc(sizeof(char) * max_data);
 
   // Bug: strncpy doesn't guarantee a null-terminated string
   char *res = strncpy(addr->name, name, max_data);
