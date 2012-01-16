@@ -1,3 +1,10 @@
+/*
+ * The #2 extra credit for this exercise was pretty darn tricky and took me a
+ * good while to figure out, so I've annotated this file as throroughly
+ * as I could about my process in solving it, so as to help anybody
+ * else who might be stumbling on it.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
