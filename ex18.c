@@ -16,12 +16,14 @@ void die(const char *message) {
 
 
 typedef int (*compare_cb) (int a, int b);
+typedef int *(*sort_cb) (int *numbers, int count, compare_cb cmp);
 
 
+// sort_cb implementations
 int *bubble_sort(int *numbers, int count, compare_cb cmp) {
-    int temp = 0;
     int i = 0;
     int j = 0;
+    int temp = 0;
     int *target = malloc(count * sizeof(int));
 
     if (!target)
@@ -42,6 +44,31 @@ int *bubble_sort(int *numbers, int count, compare_cb cmp) {
     return target;
 }
 
+int *insertion_sort(int *numbers, int count, compare_cb cmp) {
+    int i = 0;
+    int j = 0;
+    int temp = 0;
+    int *target = malloc(count * sizeof(int));
+
+    if (!target)
+        die("Memory error");
+
+    memcpy(target, numbers, count * sizeof(int));
+    
+    for (i = 0; i < count; i++) {
+        j = i;
+        while ( j > 0 && cmp(target[j-1], target[j]) > 0 ) {
+            temp = target[j];
+            target[j] = target[j-1];
+            target[j-1] = temp;
+            j--;
+        }
+    }
+
+    return target;
+}
+
+
 // compare_cb implementations
 int sorted_order(int a, int b) {
     return a - b;
@@ -60,13 +87,14 @@ int strange_order(int a, int b) {
 }
 
 
-void test_sorting(int *numbers, int count, compare_cb cmp) {
+void test_sorting(int *numbers, int count, sort_cb sort, compare_cb cmp) {
     int i = 0;
-    int *sorted = bubble_sort(numbers, count, cmp);
+    int *sorted = sort(numbers, count, cmp);
 
     if (!sorted)
         die("Failed to sort as requested");
 
+    puts("Sorted result:");
     for (i = 0; i < count; i++) {
         printf("%d ", sorted[i]);
     }
@@ -74,6 +102,16 @@ void test_sorting(int *numbers, int count, compare_cb cmp) {
     printf("\n");
 
     free(sorted);
+
+    // print raw function assembler bytecode
+    unsigned char *data = (unsigned char *)cmp;
+
+    puts("Function bytecode:");
+    for (i = 0; i < 25; i++) {
+        printf("%0x: ", data[i]);
+    }
+
+    printf("\n\n");
 }
 
 
@@ -93,10 +131,16 @@ int main(int argc, char *argv[]) {
         numbers[i] = atoi(inputs[i]);
     }
 
-    test_sorting(numbers, count, sorted_order);
-    test_sorting(numbers, count, reverse_order);
-    test_sorting(numbers, count, strange_order);
+    puts("BUBBLE SORT");
+    test_sorting(numbers, count, bubble_sort, sorted_order);
+    test_sorting(numbers, count, bubble_sort, reverse_order);
+    test_sorting(numbers, count, bubble_sort, strange_order);
 
+    puts("INSERTION SORT");
+    test_sorting(numbers, count, insertion_sort, sorted_order);
+    test_sorting(numbers, count, insertion_sort, reverse_order);
+    test_sorting(numbers, count, insertion_sort, strange_order);
+    
     free(numbers);
 
     return 0;
