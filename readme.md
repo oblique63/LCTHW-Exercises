@@ -22,3 +22,6 @@ ex14 - functions
 ex15 - pointers  
 ex16 - structs and pointers  
 ex17 - Ghetto Database: file I/O, malloc and more!  
+ex18 - function pointers and sorting algorithms  
+ex19 - Text adventure game with primitive object system  
+
